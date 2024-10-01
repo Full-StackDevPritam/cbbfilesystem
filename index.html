@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Drawer Input</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h3>Enter Bank File Details</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="bankForm">
+                            <div class="mb-3">
+                                <label for="bankFile" class="form-label">Bank File Name</label>
+                                <input type="text" class="form-control" id="bankFile" name="bankFile"
+                                    placeholder="Enter the bank file name" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="drawerNumber" class="form-label">Where is it ?</label>
+                                <input type="text" class="form-control" id="drawerNumber" name="drawerNumber"
+                                    placeholder="Where is it?" required>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-success">Add</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container mt-5">
+            <h2 class="text-center">Bank File and Drawer Details</h2>
+            <div class="row">
+                <div class="col-md">
+                    <input type="text" id="searchBar" class="form-control" placeholder="Search Bank File Name...">
+                </div>
+            </div>
+            <table class="table table-striped table-bordered mt-4">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Bank File Name</th>
+                        <th>Number of Drawers</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Data will be appended here -->
+                </tbody>
+            </table>
+
+        </div>
+
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+        <script>
+            // Fetch data and populate table
+            function fetchData() {
+                // get the domain 
+                var domain = window.location.origin;
+                fetch(`${domain}/data`)
+                    .then(response => response.json())
+                    .then(data => {
+                        populateTable(data);
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+
+            // Populate the table with data
+            function populateTable(data) {
+                const tableBody = document.getElementById('tableBody');
+                tableBody.innerHTML = ''; // Clear table
+
+                data.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>${item.bankFile}</td><td>${item.drawerNumber}</td>`;
+                    tableBody.appendChild(row);
+                });
+            }
+
+            // Form submission
+            document.getElementById('bankForm').addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                const bankFile = document.getElementById('bankFile').value;
+                const drawerNumber = document.getElementById('drawerNumber').value;
+                // get the domain 
+                var domain = window.location.origin;
+                fetch(`${domain}/submit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ bankFile, drawerNumber }),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Success:', data);
+                        fetchData(); // Refresh table data
+                    })
+                    .catch(error => console.error('Error:', error));
+            });
+
+            // Search function to filter table data based on input
+            document.getElementById('searchBar').addEventListener('keyup', function () {
+                const query = this.value.toLowerCase();
+                const tableRows = document.querySelectorAll('#tableBody tr');
+
+                tableRows.forEach(row => {
+                    const bankFileName = row.cells[0].innerText.toLowerCase();
+                    if (bankFileName.includes(query)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+
+            // Initial fetch
+            fetchData();
+        </script>
+
+
+</body>
+
+</html>
