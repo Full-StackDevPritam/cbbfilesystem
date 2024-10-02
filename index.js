@@ -1,54 +1,67 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 const PORT = 3000;
+const dataFilePath = path.join(__dirname, 'data.json');
 
-app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// Use middleware
+app.use(cors()); // To handle cross-origin requests
+app.use(bodyParser.json()); // To parse JSON bodies
 
 app.use(express.static(__dirname))
 
-const filePath = path.join(__dirname, 'data.json');
-
-// Helper function to read and write JSON file
+// Helper function to read data from the JSON file
 const readDataFromFile = () => {
-    if (!fs.existsSync(filePath)) {
+    try {
+        const data = fs.readFileSync(dataFilePath, 'utf-8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.error('Error reading data from file:', error);
         return [];
     }
-    const data = fs.readFileSync(filePath);
-    return JSON.parse(data);
 };
 
+// Helper function to write data to the JSON file
 const writeDataToFile = (data) => {
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+    try {
+        fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), 'utf-8');
+    } catch (error) {
+        console.error('Error writing data to file:', error);
+    }
 };
 
-// Endpoint to fetch bank details
+// Route to fetch bank file data (GET /data)
 app.get('/data', (req, res) => {
-    const data = readDataFromFile();
-    res.json(data);
+    const bankData = readDataFromFile();
+    res.json(bankData); // Send the current data from the JSON file
 });
 
-// Endpoint to add new bank file details
+// Route to handle form submission (POST /submit)
 app.post('/submit', (req, res) => {
     const { bankFile, drawerNumber } = req.body;
+
     if (!bankFile || !drawerNumber) {
-        return res.status(400).json({ message: 'All fields are required' });
+        return res.status(400).json({ error: 'Bank File and Drawer Number are required' });
     }
 
-    const data = readDataFromFile();
-    data.push({ bankFile, drawerNumber });
-    writeDataToFile(data);
+    // Read the current data from the file
+    const bankData = readDataFromFile();
 
-    res.status(201).json({ message: 'Data added successfully' });
+    // Add the new entry
+    const newEntry = { bankFile, drawerNumber };
+    bankData.push(newEntry);
+
+    // Write the updated data back to the file
+    writeDataToFile(bankData);
+
+    res.json({ message: 'Data added successfully', data: newEntry });
 });
 
-// Start server
+// Start the server
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
