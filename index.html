@@ -20,6 +20,7 @@
                     </div>
                     <div class="card-body">
                         <form id="bankForm">
+                            <div class="res"></div>
                             <div class="mb-3">
                                 <label for="bankFile" class="form-label">Bank File Name</label>
                                 <input type="text" class="form-control" id="bankFile" name="bankFile"
@@ -109,7 +110,7 @@
                         return response.json();
                     })
                     .then(data => {
-                        console.log('Success:', data);
+                        showNotification(data.message);
                         fetchData(); // Refresh table data
                     })
                     .catch(error => console.error('Error submitting form:', error));
@@ -129,6 +130,17 @@
                     }
                 });
             });
+
+            // function for show Notification
+            function showNotification(message, type="success") {
+                let alertMessage = `
+                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                            ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+                document.querySelector('div.res').innerHTML = alertMessage;
+            }
 
             // Initial fetch
             fetchData();
