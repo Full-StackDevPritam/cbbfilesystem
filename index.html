@@ -65,7 +65,10 @@
         <script>
             // Fetch data and populate table
             function fetchData() {
-                fetch('http://localhost:3000/data')
+                // get the current url
+                var url = window.location.href;
+                // fetch data from server
+                fetch('/data')
                     .then(response => {
                         if (!response.ok) {
                             throw new Error('Network response was not ok');
@@ -92,7 +95,7 @@
                 const bankFile = document.getElementById('bankFile').value;
                 const drawerNumber = document.getElementById('drawerNumber').value;
 
-                fetch('http://localhost:3000/submit', {
+                fetch('/submit', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
